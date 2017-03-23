@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <script src="jacques_journal.js"></script>
+    <script src="ancestry.js"></script>
+    <script>
+        var landscape = function() {
+            var result = "";
+            var flat = function(size) {
+                for (var count = 0; count < size; count++) result += "_";
+            };
+            var mountain = function(size) {
+                result +="/";
+                for (var count=0; count < size; count++) result += "'";
+                result +="\\";
+            };
+
+            flat(3);
+            mountain(4);
+            flat(6);
+            mountain(1);
+            flat(1);
+            return result;
+        }
+
+        function min(a, b) {
+            return a<b ? a : b;
+        }
+
+        function isEven(num) {
+            if (num==0) return true;
+            if (num==1) return false;
+            return (num>=0) ? isEven(num-2) : isEven(num+2);
+        }
+
+        function countBs(str) {
+            var countRes = 0;
+            for (var i=0; i<str.length; i++) {
+                if (str.charAt(i)=='B') countRes++;
+            }
+            return countRes;
+        }
+
+        function countChar(str,chr) {
+            var countRes = 0;
+            for (var i=0; i<str.length; i++) {
+                if (str.charAt(i)==chr) countRes++;
+            }
+            return countRes;
+        }
+
+        var journal = [];
+
+        function addEntry(events, didITurnIntoASquirell) {
+            journal.push({
+                events: events,
+                squirrel: didITurnIntoASquirell
+            });
+        }
+
+        function phi(table) {
+            return (table[3]*table[0]-table[2]*table[1])/
+            Math.sqrt((table[2]+table[3])*
+                (table[0]+table[1])*
+                (table[1]+table[3])*
+                (table[0]+table[2]));
+        }
+
+        function hasEvent(event, entry) {
+            return entry.events.indexOf(event) != -1;
+        }
+
+        function tableFor(event, journal) {
+            var table = [0, 0, 0, 0];
+            for (var i = 0; i < journal.length; i++) {
+                var entry = journal[i], index = 0;
+                if (hasEvent(event, entry)) index += 1;
+                if (entry.squirrel) index += 2;
+                table[index] += 1;
+            }
+            return table;
+        }        
+
+        var map = {};
+        function storePhi(event, phi) {
+            map[event] = phi;
+        }
+
+        function gatherCorrelations(journal) {
+            var phis = {};
+            for (var entry = 0; entry < journal.length; entry++) {
+                var events = journal[entry].events;
+                for (var i = 0; i < events.length; i++) {
+                var event = events[i];
+                if (!(event in phis))
+                    phis[event] = phi(tableFor(event, journal));
+                }
+            }
+            return phis;
+        }
+
+        var correlations = gatherCorrelations(JOURNAL);
+
+        function range(start, end, step) {
+            var res = [];
+            step = step || 1;
+            if (step > 0) {
+                for (var i = start; i <= end; i += step)
+                res.push(i);
+            } else {
+                for (var i = start; i >= end; i += step)
+                res.push(i);
+            }
+            return res;
+        }
+
+        function sum(arr) {
+            var res = 0;
+            for(var i=0; i <arr.length; i++) res+=arr[i];
+            return res;
+        }
+
+        function reverseArray(arr) {
+            var res = [];
+            for(var i=arr.length-1; i>=0; i--) res.push(arr[i]);
+            return res;
+        }
+
+        function reverseArrayInPlace(arr) {
+            var tmpVal;
+            for(var i=0; i<Math.floor(arr.length/2); i++) {
+                tmpVal = arr[i];
+                arr[i] = arr[arr.length-i-1];
+                arr[arr.length-i-1] = tmpVal;
+            }
+        }
+
+        function prepend(elem, list) {
+            return {value: elem, rest: list};
+        }
+
+        function nth(num, list) {
+            if (!list)
+                return undefined;
+            else if (num==0) 
+                    return list.value
+            else return 
+                    nth(num-1,list.rest);
+        }
+
+        function arrayToList(arr) {
+            var res = null;
+            for(var i=arr.length-1; i>=0; i-- ){
+                res = prepend(arr[i], res);
+            }
+            return res;
+        }
+
+        function deepEqual(a, b) {
+            if (a === b) return true;
+            
+            if (a == null || typeof a != "object" ||
+                b == null || typeof b != "object")
+                return false;
+            
+            var propsInA = 0, propsInB = 0;
+
+            for (var prop in a)
+                propsInA += 1;
+
+            for (var prop in b) {
+                propsInB += 1;
+                if (!(prop in a) || !deepEqual(a[prop], b[prop]))
+                return false;
+            }
+
+            return propsInA == propsInB;
+            }
+
+        var ancestry = JSON.parse(ANCESTRY_FILE);
+        var byName = {};
+
+        ancestry.forEach(function(person) {
+            byName[person.name] = person;
+        });         
+
+        function average(array) {
+            function plus(a, b) { return a + b; }
+            return array.reduce(plus) / array.length;
+        }
+
+        function every(arr,func) {
+            function compareArr(a,b) {
+                return a&&func(b);
+            }
+            return arr.reduce(compareArr,true);
+        }
+
+        function some(arr,func) {
+            function compareArr(a,b) {
+                return a||func(b);
+            }
+            return arr.reduce(compareArr,false);
+
+        }
+
+   
+
+        document.addEventListener('DOMContentLoaded', function(){
+
+      
+            console.log(every([NaN, NaN, NaN], isNaN));
+            // → true
+            console.log(every([NaN, NaN, 4], isNaN));
+            console.log(some([NaN, 3, 4], isNaN));
+            // → true
+            console.log(some([2, 3, 4], isNaN));
+            // → false
+          
+                        
+                        
+            /*console.log(
+                aniversry
+            );*/
+
+        }, false);
+
+    </script>
+</head>
+<body>
+   Hello! 
+</body>
+</html>
